@@ -73,8 +73,36 @@ public class ExeBuilder {
         return this;
     }
 
-    public void build() {
+    /**
+     * Builds the packaged app from start to finish: resolves required
+     * dependencies (javafx-jmods, WiX), validates the config, then runs
+     * jlink followed by jpackage to produce the final exe/msi/app-image.
+     *
+     * @throws IOException if any file or subprocess step fails
+     * @throws InterruptedException if a subprocess is interrupted
+     */
+    public void build() throws IOException, InterruptedException {
+        resolveDependencies();
+        validate();
 
+        Files.createDirectories(workDir);
+        Files.createDirectories(outputDir);
+
+        Path runtimeImage = workDir.resolve("runtime");
+        jlink(runtimeImage);
+        jpackage(runtimeImage);
+
+    }
+
+    private void resolveDependencies() throws IOException, InterruptedException {
+        DependencyManager deps = new DependencyManager();
+        if (jfxModsPath == null) {
+            jfxModsPath = deps.getJavaFxJmods();
+        }
+
+        if ((type.equals("msi") || type.equals("exe")) && wixBinPath == null) {
+            wixBinPath = deps.getWixBinaries();
+        }
     }
 
     /**

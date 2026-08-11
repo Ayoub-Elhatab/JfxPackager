@@ -78,6 +78,22 @@ public class ExeBuilder {
     }
 
     /**
+     * Checks that required config is present before building.
+     * Fails fast with a clear message instead of letting jlink/jpackage
+     * fail later with a cryptic subprocess error.
+     *
+     * @throws IllegalStateException if a required field or dependency is missing
+     */
+    private void validate() {
+        if (mainJar == null || mainClass == null || appName == null)
+            throw new IllegalStateException("mainJar, mainClass, appName are required");
+        if (jfxModsPath == null || !Files.exists(jfxModsPath))
+            throw new IllegalStateException("jfxModsPath missing — bundle/download javafx-jmods first");
+        if (type.equals("msi") && (wixBinPath == null || !Files.exists(wixBinPath)))
+            throw new IllegalStateException("wixBinPath missing — bundle/download WiX first for msi builds");
+    }
+
+    /**
      * Builds a minimal custom Java runtime image containing only the
      * modules the app needs (JavaFX + java.base), using jlink. This
      * trimmed runtime is what jpackage later bundles into the exe.

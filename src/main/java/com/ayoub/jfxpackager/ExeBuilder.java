@@ -102,6 +102,44 @@ public class ExeBuilder {
     }
 
     /**
+     * Packages the app's jar and jlink runtime image into the final
+     * output (exe, msi, or app-image) via jpackage. For exe/msi builds,
+     * temporarily adds the bundled WiX binaries to PATH so jpackage can
+     * find candle/light without a system-wide WiX install.
+     *
+     * @param runtimeImage the jlink-built runtime to bundle into the app
+     */
+    private void jpackage(Path runtimeImage) throws IOException, InterruptedException {
+        List<String> cmd = new ArrayList<>(
+                List.of(
+                        "jpackage",
+                        "--type", type,
+                        "--name", appName,
+                        "--app-version", appVersion,
+                        "--input", Paths.get(mainJar).getParent().toString(),
+                        "--main-jar", Paths.get(mainJar).getFileName().toString(),
+                        "--main-class", mainClass,
+                        "--runtime-image", runtimeImage.toString(),
+                        "--dest", outputDir.toString()
+                )
+        );
+
+        if (iconPath != null) {
+            cmd.add("--icon");
+            cmd.add(iconPath.toString());
+        }
+
+        Map<String, String> env = null;
+        if (type.equals("msi") || type.equals("exe")) {
+            env = new HashMap<>(System.getenv());
+            // jpackage looks for candle/light on PATH; prepend our bundled WiX
+            env.put("PATH", wixBinPath.toString() + File.pathSeparator + env.getOrDefault("PATH", ""));
+        }
+        run(cmd, env);
+
+    }
+
+    /**
      * Recursively deletes a directory and all its contents,
      * deepest files first. Logs (but doesn't throw) if a file
      * fails to delete, so cleanup continues regardless.

@@ -1,8 +1,93 @@
 package com.ayoub.jfxpackager;
 
 
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Main {
 
-    public static void main(String[] args) {
+    /**
+     * CLI entry point. Parses flags into an ExeBuilder config and runs
+     * the build. Prints usage and exits if required flags are missing.
+     *
+     * @param args CLI arguments in "--flag value" form
+     * @throws IOException if the build fails
+     * @throws InterruptedException if a build subprocess is interrupted
+     */
+    public static void main(String[] args) throws IOException, InterruptedException {
+        Map<String, String> opts = parseArgs(args);
+
+        if (!opts.containsKey("jar") || !opts.containsKey("main") || !opts.containsKey("name")) {
+            printUsage();
+            return;
+        }
+
+        ExeBuilder builder = new ExeBuilder()
+                .mainJar(opts.get("jar"))
+                .mainClass(opts.get("main"))
+                .appName(opts.get("name"))
+                .type(opts.getOrDefault("type", "exe"));
+
+        if (opts.containsKey("version")) {
+            builder.appVersion(opts.get("version"));
+        }
+        if (opts.containsKey("modules")) {
+            builder.javafxModules(opts.get("modules").split(","));
+        }
+        if (opts.containsKey("out")){
+            builder.outputDir(Paths.get(opts.get("out")));
+        }
+        if (opts.containsKey("icon")){
+            builder.icon(Paths.get(opts.get("icon")));
+        }
+
+        System.out.println("Building " + opts.get("name") + " ...");
+        builder.build();
+        System.out.println("Done. Output in " + opts.getOrDefault("out", "dist"));
+    }
+
+    /**
+     * Parses CLI args into a map of flag names to values, expecting
+     * "--flag value" pairs (e.g. "--jar app.jar" -> {"jar": "app.jar"}).
+     *
+     * @param args raw CLI arguments
+     * @return map of flag name (without "--") to its value
+     */
+    private static Map<String, String> parseArgs(String[] args) {
+        Map<String, String> opts = new HashMap<>();
+        for (int i = 0; i < args.length - 1; i++) {
+            if (args[i].startsWith("--")) {
+                opts.put(args[i].substring(2), args[i + 1]);
+            }
+        }
+        return opts;
+    }
+
+    /**
+     * Prints CLI usage instructions, including required/optional flags
+     * and an example command. Shown when required arguments are missing.
+     */
+    private static void printUsage() {
+        System.out.println("""
+            Usage:
+              java -jar jfxpackager.jar --jar <path> --main <fqcn> --name <appName> [options]
+
+            Required:
+              --jar       Path to built JavaFX app jar
+              --main      Fully qualified main class
+              --name      App name for the output exe
+
+            Optional:
+              --modules   Comma-separated JavaFX modules (default: javafx.controls)
+              --version   App version (default: 1.0)
+              --type      exe | msi | app-image (default: exe)
+              --out       Output directory (default: dist)
+              --icon      Path to a .ico file for the app icon
+
+            Example:
+              java -jar jfxpackager.jar --jar target/myapp.jar --main com.example.Main --name MyApp --modules javafx.controls,javafx.fxml
+            """);
     }
 }

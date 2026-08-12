@@ -17,31 +17,31 @@ public class DependencyManager {
 
     private static final Path CACHE_DIR = Paths.get(System.getProperty("user.home"), ".jfxpackager", "cache");
 
-    private static final String JFX_VERSION = "21.0.2";
-    private static final String JFX_URL = "https://download2.gluonhq.com/openjfx/" + JFX_VERSION + "/openjfx-" + JFX_VERSION + "_windows-x64_bin-jmods.zip";
-
     private static final String WIX_URL = "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip";
 
     /**
-     * Returns the local javafx-jmods folder, downloading and extracting
-     * it on first use and reusing the cached copy afterward. A ".complete"
-     * marker file confirms the cache is fully extracted, so an interrupted
-     * download doesn't leave a broken cache behind.
+     * Returns the local javafx-jmods folder for the given version,
+     * downloading and extracting it on first use and reusing the
+     * cached copy afterward. A ".complete" marker file confirms the
+     * cache is fully extracted, so an interrupted download doesn't
+     * leave a broken cache behind.
      *
+     * @param version the JavaFX version to fetch, e.g. "21.0.2"
      * @return path to the folder containing the javafx .jmod files
      * @throws IOException if the download or extraction fails
      * @throws InterruptedException if the download is interrupted
      */
-    public Path getJavaFxJmods() throws IOException, InterruptedException {
-        Path target = CACHE_DIR.resolve("javafx-jmods-" + JFX_VERSION);
+    public Path getJavaFxJmods(String version) throws IOException, InterruptedException {
+        Path target = CACHE_DIR.resolve("javafx-jmods-" + version);
         Path marker = target.resolve(".complete");
         if (Files.exists(marker)) {
             return target;
         }
         Files.createDirectories(target);
 
+        String jfxUrl = "https://download2.gluonhq.com/openjfx/" + version + "/openjfx-" + version + "_windows-x64_bin-jmods.zip";
         Path zip = CACHE_DIR.resolve("javafx-jmods.zip");
-        download(JFX_URL, zip);
+        download(jfxUrl, zip);
         unzip(zip, target, true); // strip top-level folder (jmods/*.jmod)
 
         Files.deleteIfExists(zip);

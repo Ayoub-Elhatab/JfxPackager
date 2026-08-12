@@ -20,6 +20,7 @@ public class JfxPackager {
     private Path workDir = Paths.get("build-tmp");
     private Path iconPath;
     private String type = "exe";   // exe, msi, app-image
+    private String javafxVersion = "21.0.2";
 
     private boolean winShortcut = false;
     private boolean winMenu = false;
@@ -76,6 +77,11 @@ public class JfxPackager {
         return this;
     }
 
+    public JfxPackager javafxVersion(String v) {
+        this.javafxVersion = v;
+        return this;
+    }
+
     public JfxPackager winShortcut(boolean b) {
         this.winShortcut = b;
         return this;
@@ -113,8 +119,9 @@ public class JfxPackager {
 
     /**
      * Auto-resolves required dependency paths that weren't explicitly
-     * set: downloads/caches javafx-jmods always, and WiX only when
-     * building an exe or msi (app-image doesn't need it).
+     * set: downloads/caches javafx-jmods for the configured JavaFX
+     * version always, and WiX only when building an exe or msi
+     * (app-image doesn't need it).
      *
      * @throws IOException if a dependency download or extraction fails
      * @throws InterruptedException if a dependency download is interrupted
@@ -122,7 +129,7 @@ public class JfxPackager {
     private void resolveDependencies() throws IOException, InterruptedException {
         DependencyManager deps = new DependencyManager();
         if (jfxModsPath == null) {
-            jfxModsPath = deps.getJavaFxJmods();
+            jfxModsPath = deps.getJavaFxJmods(javafxVersion);
         }
 
         if ((type.equals("msi") || type.equals("exe")) && wixBinPath == null) {

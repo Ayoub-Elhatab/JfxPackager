@@ -61,6 +61,9 @@ public class Main {
         if (opts.containsKey("icon")){
             builder.icon(Paths.get(opts.get("icon")));
         }
+        if (opts.containsKey("javafx-version")) {
+            builder.javafxVersion(opts.get("javafx-version"));
+        }
         if (opts.containsKey("shortcut")) {
             builder.winShortcut(Boolean.parseBoolean(opts.get("shortcut")));
         }
@@ -161,9 +164,10 @@ public class Main {
               --shortcut  true|false — create a desktop shortcut (default: false)
               --menu      true|false — add a Start Menu entry (default: false)
               --dir-chooser  true|false — let the installer pick install dir (default: false)
+              --javafx-version  JavaFX version to package (default: 21.0.2)
 
             Example:
-                java -jar jfxpackager.jar --jar target/myapp.jar --main com.example.Main --name MyApp --modules javafx.controls,javafx.fxml --icon icons/app.ico --shortcut true --menu true --type exe
+                java -jar jfxpackager.jar --jar target/myapp.jar --main com.example.Main --name MyApp --modules javafx.controls,javafx.fxml --icon icons/app.ico --shortcut true --menu true --type exe  --javafx-version 21.0.2
             """);
     }
 }

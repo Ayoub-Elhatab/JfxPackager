@@ -24,7 +24,7 @@ public class Main {
             return;
         }
 
-        ExeBuilder builder = new ExeBuilder()
+        JfxPackager builder = new JfxPackager()
                 .mainJar(opts.get("jar"))
                 .mainClass(opts.get("main"))
                 .appName(opts.get("name"))

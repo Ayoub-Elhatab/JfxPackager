@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class ExeBuilder {
+public class JfxPackager {
 
     private String mainJar;
     private String mainClass;
@@ -25,68 +25,68 @@ public class ExeBuilder {
     private boolean winMenu = false;
     private boolean winDirChooser = false;
 
-    public ExeBuilder mainJar(String path) {
+    public JfxPackager mainJar(String path) {
         this.mainJar = path;
         return this;
     }
 
-    public ExeBuilder mainClass(String cls) {
+    public JfxPackager mainClass(String cls) {
         this.mainClass = cls;
         return this;
     }
 
-    public ExeBuilder appName(String name) {
+    public JfxPackager appName(String name) {
         this.appName = name; return this;
     }
 
-    public ExeBuilder appVersion(String v) {
+    public JfxPackager appVersion(String v) {
         this.appVersion = v; return this;
     }
 
     private boolean modulesExplicitlySet = false;
 
-    public ExeBuilder javafxModules(String... mods) {
+    public JfxPackager javafxModules(String... mods) {
         if (!modulesExplicitlySet) { this.javafxModules.clear(); modulesExplicitlySet = true; }
         this.javafxModules.addAll(Arrays.asList(mods));
         return this;
     }
 
-    public ExeBuilder jfxModsPath(Path p) {
+    public JfxPackager jfxModsPath(Path p) {
         this.jfxModsPath = p;
         return this;
     }
 
-    public ExeBuilder wixBinPath(Path p) {
+    public JfxPackager wixBinPath(Path p) {
         this.wixBinPath = p;
         return this;
     }
 
-    public ExeBuilder outputDir(Path p) {
+    public JfxPackager outputDir(Path p) {
         this.outputDir = p;
         return this;
     }
 
-    public ExeBuilder type(String t) {
+    public JfxPackager type(String t) {
         this.type = t;
         return this;
     }
 
-    public ExeBuilder icon(Path p) {
+    public JfxPackager icon(Path p) {
         this.iconPath = p;
         return this;
     }
 
-    public ExeBuilder winShortcut(boolean b) {
+    public JfxPackager winShortcut(boolean b) {
         this.winShortcut = b;
         return this;
     }
 
-    public ExeBuilder winMenu(boolean b) {
+    public JfxPackager winMenu(boolean b) {
         this.winMenu = b;
         return this;
     }
 
-    public ExeBuilder winDirChooser(boolean b) {
+    public JfxPackager winDirChooser(boolean b) {
         this.winDirChooser = b;
         return this;
     }

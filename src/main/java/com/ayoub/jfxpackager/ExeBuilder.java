@@ -21,6 +21,9 @@ public class ExeBuilder {
     private Path iconPath;
     private String type = "exe";   // exe, msi, app-image
 
+    private boolean winShortcut = false;
+    private boolean winMenu = false;
+    private boolean winDirChooser = false;
 
     public ExeBuilder mainJar(String path) {
         this.mainJar = path;
@@ -73,6 +76,21 @@ public class ExeBuilder {
         return this;
     }
 
+    public ExeBuilder winShortcut(boolean b) {
+        this.winShortcut = b;
+        return this;
+    }
+
+    public ExeBuilder winMenu(boolean b) {
+        this.winMenu = b;
+        return this;
+    }
+
+    public ExeBuilder winDirChooser(boolean b) {
+        this.winDirChooser = b;
+        return this;
+    }
+
     /**
      * Builds the packaged app from start to finish: resolves required
      * dependencies (javafx-jmods, WiX), validates the config, then runs
@@ -91,9 +109,16 @@ public class ExeBuilder {
         Path runtimeImage = workDir.resolve("runtime");
         jlink(runtimeImage);
         jpackage(runtimeImage);
-
     }
 
+    /**
+     * Auto-resolves required dependency paths that weren't explicitly
+     * set: downloads/caches javafx-jmods always, and WiX only when
+     * building an exe or msi (app-image doesn't need it).
+     *
+     * @throws IOException if a dependency download or extraction fails
+     * @throws InterruptedException if a dependency download is interrupted
+     */
     private void resolveDependencies() throws IOException, InterruptedException {
         DependencyManager deps = new DependencyManager();
         if (jfxModsPath == null) {
@@ -147,9 +172,10 @@ public class ExeBuilder {
 
     /**
      * Packages the app's jar and jlink runtime image into the final
-     * output (exe, msi, or app-image) via jpackage. For exe/msi builds,
-     * temporarily adds the bundled WiX binaries to PATH so jpackage can
-     * find candle/light without a system-wide WiX install.
+     * output (exe, msi, or app-image) via jpackage, optionally with a
+     * desktop shortcut, Start Menu entry, and install-dir chooser. For
+     * exe/msi builds, temporarily adds the bundled WiX binaries to PATH
+     * so jpackage can find candle/light without a system-wide WiX install.
      *
      * @param runtimeImage the jlink-built runtime to bundle into the app
      */
@@ -171,6 +197,15 @@ public class ExeBuilder {
         if (iconPath != null) {
             cmd.add("--icon");
             cmd.add(iconPath.toString());
+        }
+        if (winShortcut){
+            cmd.add("--win-shortcut");
+        }
+        if (winMenu){
+            cmd.add("--win-menu");
+        }
+        if (winDirChooser){
+            cmd.add("--win-dir-chooser");
         }
 
         Map<String, String> env = null;

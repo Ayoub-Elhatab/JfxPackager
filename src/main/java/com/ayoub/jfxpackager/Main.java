@@ -42,6 +42,15 @@ public class Main {
         if (opts.containsKey("icon")){
             builder.icon(Paths.get(opts.get("icon")));
         }
+        if (opts.containsKey("shortcut")) {
+            builder.winShortcut(Boolean.parseBoolean(opts.get("shortcut")));
+        }
+        if (opts.containsKey("menu")) {
+            builder.winMenu(Boolean.parseBoolean(opts.get("menu")));
+        }
+        if (opts.containsKey("dir-chooser")) {
+            builder.winDirChooser(Boolean.parseBoolean(opts.get("dir-chooser")));
+        }
 
         System.out.println("Building " + opts.get("name") + " ...");
         builder.build();
@@ -85,9 +94,12 @@ public class Main {
               --type      exe | msi | app-image (default: exe)
               --out       Output directory (default: dist)
               --icon      Path to a .ico file for the app icon
+              --shortcut  true|false — create a desktop shortcut (default: false)
+              --menu      true|false — add a Start Menu entry (default: false)
+              --dir-chooser  true|false — let the installer pick install dir (default: false)
 
             Example:
-              java -jar jfxpackager.jar --jar target/myapp.jar --main com.example.Main --name MyApp --modules javafx.controls,javafx.fxml
+                java -jar jfxpackager.jar --jar target/myapp.jar --main com.example.Main --name MyApp --modules javafx.controls,javafx.fxml --icon icons/app.ico --shortcut true --menu true --type exe
             """);
     }
 }

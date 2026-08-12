@@ -59,7 +59,7 @@ public class Main {
             config.outputDir(Paths.get(opts.get("out")));
         }
         if (opts.containsKey("icon")) {
-            config.icon(Paths.get(opts.get("icon")));
+            config.iconPath(Paths.get(opts.get("icon")));
         }
         if (opts.containsKey("javafx-version")) {
             config.javafxVersion(opts.get("javafx-version"));

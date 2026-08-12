@@ -1,5 +1,7 @@
 package com.ayoub.jfxpackager;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,13 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+@RequiredArgsConstructor
 public class JfxPackager {
 
     private final PackagerConfig config;
-
-    public JfxPackager(PackagerConfig config) {
-        this.config = config;
-    }
 
     /**
      * Builds the packaged app from start to finish: resolves required

@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
@@ -22,7 +23,8 @@ public class Main {
      * @throws InterruptedException if a build subprocess is interrupted
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        Map<String, String> opts = parseArgs(args);
+        Map<String, String> opts = new HashMap<>(loadPropertiesFile());
+        opts.putAll(parseArgs(args)); // CLI flags override file values
 
         Path jarPath = opts.containsKey("jar") ? Paths.get(opts.get("jar")) : autoDetectJar();
         if (jarPath == null) {
@@ -77,6 +79,32 @@ public class Main {
         System.out.println("Building " + opts.get("name") + " ...");
         new JfxPackager(config).build();
         System.out.println("Done. Output in " + opts.getOrDefault("out", "dist"));
+    }
+
+    /**
+     * Loads defaults from jfxpackager.properties in the current directory,
+     * if present. CLI flags take precedence over anything set here.
+     *
+     * @return map of flag name to value loaded from the properties file,
+     *         or an empty map if the file doesn't exist
+     */
+    private static Map<String, String> loadPropertiesFile() {
+        Path propsFile = Paths.get("jfxpackager.properties");
+        Map<String, String> result = new HashMap<>();
+        if (!Files.exists(propsFile)) {
+            return result;
+        }
+
+        Properties props = new Properties();
+        try (var in = Files.newInputStream(propsFile)) {
+            props.load(in);
+            for (String key : props.stringPropertyNames()) {
+                result.put(key, props.getProperty(key));
+            }
+        } catch (IOException e) {
+            System.err.println("Could not read jfxpackager.properties: " + e.getMessage());
+        }
+        return result;
     }
 
     /**
@@ -148,6 +176,10 @@ public class Main {
             Usage:
               java -jar jfxpackager.jar --jar <path> --main <fqcn> --name <appName> [options]
 
+            Defaults can also be set in a jfxpackager.properties file in the
+                current directory (same flag names, without "--"). CLI flags
+                override file values.
+                
             Required:
                 --name      App name for the output exe
             

@@ -2,9 +2,14 @@ package com.ayoub.jfxpackager;
 
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public class Main {
 
@@ -19,14 +24,28 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         Map<String, String> opts = parseArgs(args);
 
-        if (!opts.containsKey("jar") || !opts.containsKey("main") || !opts.containsKey("name")) {
+        Path jarPath = opts.containsKey("jar") ? Paths.get(opts.get("jar")) : autoDetectJar();
+        if (jarPath == null) {
+            System.err.println("No --jar given and no jar found in target/. Build your project first.");
+            printUsage();
+            return;
+        }
+
+        String mainClass = opts.containsKey("main") ? opts.get("main") : autoDetectMainClass(jarPath);
+        if (mainClass == null) {
+            System.err.println("No --main given and no Main-Class found in the jar's manifest.");
+            printUsage();
+            return;
+        }
+
+        if (!opts.containsKey("name")) {
             printUsage();
             return;
         }
 
         JfxPackager builder = new JfxPackager()
-                .mainJar(opts.get("jar"))
-                .mainClass(opts.get("main"))
+                .mainJar(jarPath.toString())
+                .mainClass(mainClass)
                 .appName(opts.get("name"))
                 .type(opts.getOrDefault("type", "exe"));
 
@@ -75,6 +94,49 @@ public class Main {
     }
 
     /**
+     * Scans target/ for a single usable jar, skipping sources/javadoc
+     * jars, so --jar can be omitted for typical Maven project layouts.
+     *
+     * @return the detected jar path, or null if none or multiple were found
+     */
+    private static Path autoDetectJar() {
+        Path targetDir = Paths.get("target");
+        if (!Files.isDirectory(targetDir)) {
+            return null;
+        }
+
+        try (var stream = Files.list(targetDir)) {
+            List<Path> candidates = stream
+                    .filter(p -> p.toString().endsWith(".jar"))
+                    .filter(p -> !p.getFileName().toString().contains("sources"))
+                    .filter(p -> !p.getFileName().toString().contains("javadoc"))
+                    .toList();
+            return candidates.size() == 1 ? candidates.get(0) : null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Reads the Main-Class attribute from a jar's manifest, so --main
+     * can be omitted when the jar was already built with one set.
+     *
+     * @param jarPath path to the jar to inspect
+     * @return the fully qualified main class, or null if not found
+     */
+    private static String autoDetectMainClass(Path jarPath) {
+        try (JarFile jar = new JarFile(jarPath.toFile())) {
+            Manifest manifest = jar.getManifest();
+            if (manifest == null) {
+                return null;
+            }
+            return manifest.getMainAttributes().getValue("Main-Class");
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
      * Prints CLI usage instructions, including required/optional flags
      * and an example command. Shown when required arguments are missing.
      */
@@ -84,9 +146,11 @@ public class Main {
               java -jar jfxpackager.jar --jar <path> --main <fqcn> --name <appName> [options]
 
             Required:
-              --jar       Path to built JavaFX app jar
-              --main      Fully qualified main class
-              --name      App name for the output exe
+                --name      App name for the output exe
+            
+            Auto-detected if omitted:
+                --jar       Path to built JavaFX app jar (auto-detected from target/ if only one jar exists)
+                --main      Fully qualified main class (auto-detected from the jar's manifest if set)
 
             Optional:
               --modules   Comma-separated JavaFX modules (default: javafx.controls)

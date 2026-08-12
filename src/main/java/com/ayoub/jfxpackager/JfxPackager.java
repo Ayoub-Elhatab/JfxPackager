@@ -9,92 +9,10 @@ import java.util.*;
 
 public class JfxPackager {
 
-    private String mainJar;
-    private String mainClass;
-    private String appName;
-    private String appVersion = "1.0";
-    private List<String> javafxModules = new ArrayList<>(List.of("javafx.controls"));
-    private Path jfxModsPath;      // where javafx jmods live (bundled/cached)
-    private Path wixBinPath;       // where candle.exe/light.exe live (bundled/cached)
-    private Path outputDir = Paths.get("dist");
-    private Path workDir = Paths.get("build-tmp");
-    private Path iconPath;
-    private String type = "exe";   // exe, msi, app-image
-    private String javafxVersion = "21.0.2";
+    private final PackagerConfig config;
 
-    private boolean winShortcut = false;
-    private boolean winMenu = false;
-    private boolean winDirChooser = false;
-
-    public JfxPackager mainJar(String path) {
-        this.mainJar = path;
-        return this;
-    }
-
-    public JfxPackager mainClass(String cls) {
-        this.mainClass = cls;
-        return this;
-    }
-
-    public JfxPackager appName(String name) {
-        this.appName = name; return this;
-    }
-
-    public JfxPackager appVersion(String v) {
-        this.appVersion = v; return this;
-    }
-
-    private boolean modulesExplicitlySet = false;
-
-    public JfxPackager javafxModules(String... mods) {
-        if (!modulesExplicitlySet) { this.javafxModules.clear(); modulesExplicitlySet = true; }
-        this.javafxModules.addAll(Arrays.asList(mods));
-        return this;
-    }
-
-    public JfxPackager jfxModsPath(Path p) {
-        this.jfxModsPath = p;
-        return this;
-    }
-
-    public JfxPackager wixBinPath(Path p) {
-        this.wixBinPath = p;
-        return this;
-    }
-
-    public JfxPackager outputDir(Path p) {
-        this.outputDir = p;
-        return this;
-    }
-
-    public JfxPackager type(String t) {
-        this.type = t;
-        return this;
-    }
-
-    public JfxPackager icon(Path p) {
-        this.iconPath = p;
-        return this;
-    }
-
-    public JfxPackager javafxVersion(String v) {
-        this.javafxVersion = v;
-        return this;
-    }
-
-    public JfxPackager winShortcut(boolean b) {
-        this.winShortcut = b;
-        return this;
-    }
-
-    public JfxPackager winMenu(boolean b) {
-        this.winMenu = b;
-        return this;
-    }
-
-    public JfxPackager winDirChooser(boolean b) {
-        this.winDirChooser = b;
-        return this;
+    public JfxPackager(PackagerConfig config) {
+        this.config = config;
     }
 
     /**
@@ -109,10 +27,10 @@ public class JfxPackager {
         resolveDependencies();
         validate();
 
-        Files.createDirectories(workDir);
-        Files.createDirectories(outputDir);
+        Files.createDirectories(config.workDir());
+        Files.createDirectories(config.outputDir());
 
-        Path runtimeImage = workDir.resolve("runtime");
+        Path runtimeImage = config.workDir().resolve("runtime");
         jlink(runtimeImage);
         jpackage(runtimeImage);
     }
@@ -128,12 +46,12 @@ public class JfxPackager {
      */
     private void resolveDependencies() throws IOException, InterruptedException {
         DependencyManager deps = new DependencyManager();
-        if (jfxModsPath == null) {
-            jfxModsPath = deps.getJavaFxJmods(javafxVersion);
+        if (config.jfxModsPath() == null) {
+            config.jfxModsPath(deps.getJavaFxJmods(config.javafxVersion()));
         }
 
-        if ((type.equals("msi") || type.equals("exe")) && wixBinPath == null) {
-            wixBinPath = deps.getWixBinaries();
+        if ((config.type().equals("msi") || config.type().equals("exe")) && config.wixBinPath() == null) {
+            config.wixBinPath(deps.getWixBinaries());
         }
     }
 
@@ -145,11 +63,11 @@ public class JfxPackager {
      * @throws IllegalStateException if a required field or dependency is missing
      */
     private void validate() {
-        if (mainJar == null || mainClass == null || appName == null)
+        if (config.mainJar() == null || config.mainClass() == null || config.appName() == null)
             throw new IllegalStateException("mainJar, mainClass, appName are required");
-        if (jfxModsPath == null || !Files.exists(jfxModsPath))
+        if (config.jfxModsPath() == null || !Files.exists(config.jfxModsPath()))
             throw new IllegalStateException("jfxModsPath missing — bundle/download javafx-jmods first");
-        if (type.equals("msi") && (wixBinPath == null || !Files.exists(wixBinPath)))
+        if (config.type().equals("msi") && (config.wixBinPath() == null || !Files.exists(config.wixBinPath())))
             throw new IllegalStateException("wixBinPath missing — bundle/download WiX first for msi builds");
     }
 
@@ -161,15 +79,15 @@ public class JfxPackager {
      * @param outputImage where to write the generated runtime image
      */
     private void jlink(Path outputImage) throws IOException, InterruptedException {
-        if(Files.exists(outputImage)) {
+        if (Files.exists(outputImage)) {
             deleteDir(outputImage);
         }
 
         List<String> cmd = new ArrayList<>(
                 List.of(
                         "jlink",
-                        "--module-path", jfxModsPath.toString() + File.pathSeparator + System.getProperty("java.home") + "/jmods",
-                        "--add-modules", String.join(",", addJavaBase(javafxModules)),
+                        "--module-path", config.jfxModsPath().toString() + File.pathSeparator + System.getProperty("java.home") + "/jmods",
+                        "--add-modules", String.join(",", addJavaBase(config.javafxModules())),
                         "--output", outputImage.toString(),
                         "--strip-debug", "--no-header-files", "--no-man-pages", "--compress=2"
                 )
@@ -190,36 +108,30 @@ public class JfxPackager {
         List<String> cmd = new ArrayList<>(
                 List.of(
                         "jpackage",
-                        "--type", type,
-                        "--name", appName,
-                        "--app-version", appVersion,
-                        "--input", Paths.get(mainJar).getParent().toString(),
-                        "--main-jar", Paths.get(mainJar).getFileName().toString(),
-                        "--main-class", mainClass,
+                        "--type", config.type(),
+                        "--name", config.appName(),
+                        "--app-version", config.appVersion(),
+                        "--input", Paths.get(config.mainJar()).getParent().toString(),
+                        "--main-jar", Paths.get(config.mainJar()).getFileName().toString(),
+                        "--main-class", config.mainClass(),
                         "--runtime-image", runtimeImage.toString(),
-                        "--dest", outputDir.toString()
+                        "--dest", config.outputDir().toString()
                 )
         );
 
-        if (iconPath != null) {
+        if (config.iconPath() != null) {
             cmd.add("--icon");
-            cmd.add(iconPath.toString());
+            cmd.add(config.iconPath().toString());
         }
-        if (winShortcut){
-            cmd.add("--win-shortcut");
-        }
-        if (winMenu){
-            cmd.add("--win-menu");
-        }
-        if (winDirChooser){
-            cmd.add("--win-dir-chooser");
-        }
+        if (config.winShortcut()) cmd.add("--win-shortcut");
+        if (config.winMenu()) cmd.add("--win-menu");
+        if (config.winDirChooser()) cmd.add("--win-dir-chooser");
 
         Map<String, String> env = null;
-        if (type.equals("msi") || type.equals("exe")) {
+        if (config.type().equals("msi") || config.type().equals("exe")) {
             env = new HashMap<>(System.getenv());
             // jpackage looks for candle/light on PATH; prepend our bundled WiX
-            env.put("PATH", wixBinPath.toString() + File.pathSeparator + env.getOrDefault("PATH", ""));
+            env.put("PATH", config.wixBinPath().toString() + File.pathSeparator + env.getOrDefault("PATH", ""));
         }
         run(cmd, env);
 

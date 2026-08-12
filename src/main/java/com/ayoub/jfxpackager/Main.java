@@ -43,39 +43,39 @@ public class Main {
             return;
         }
 
-        JfxPackager builder = new JfxPackager()
+        PackagerConfig config = new PackagerConfig()
                 .mainJar(jarPath.toString())
                 .mainClass(mainClass)
                 .appName(opts.get("name"))
                 .type(opts.getOrDefault("type", "exe"));
 
         if (opts.containsKey("version")) {
-            builder.appVersion(opts.get("version"));
+            config.appVersion(opts.get("version"));
         }
         if (opts.containsKey("modules")) {
-            builder.javafxModules(opts.get("modules").split(","));
+            config.javafxModules(opts.get("modules").split(","));
         }
-        if (opts.containsKey("out")){
-            builder.outputDir(Paths.get(opts.get("out")));
+        if (opts.containsKey("out")) {
+            config.outputDir(Paths.get(opts.get("out")));
         }
-        if (opts.containsKey("icon")){
-            builder.icon(Paths.get(opts.get("icon")));
+        if (opts.containsKey("icon")) {
+            config.icon(Paths.get(opts.get("icon")));
         }
         if (opts.containsKey("javafx-version")) {
-            builder.javafxVersion(opts.get("javafx-version"));
+            config.javafxVersion(opts.get("javafx-version"));
         }
         if (opts.containsKey("shortcut")) {
-            builder.winShortcut(Boolean.parseBoolean(opts.get("shortcut")));
+            config.winShortcut(Boolean.parseBoolean(opts.get("shortcut")));
         }
         if (opts.containsKey("menu")) {
-            builder.winMenu(Boolean.parseBoolean(opts.get("menu")));
+            config.winMenu(Boolean.parseBoolean(opts.get("menu")));
         }
         if (opts.containsKey("dir-chooser")) {
-            builder.winDirChooser(Boolean.parseBoolean(opts.get("dir-chooser")));
+            config.winDirChooser(Boolean.parseBoolean(opts.get("dir-chooser")));
         }
 
         System.out.println("Building " + opts.get("name") + " ...");
-        builder.build();
+        new JfxPackager(config).build();
         System.out.println("Done. Output in " + opts.getOrDefault("out", "dist"));
     }
 

@@ -13,6 +13,15 @@ import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * Downloads and caches the external binaries jlink/jpackage need
+ * but the JDK doesn't ship: javafx-jmods (per version) and WiX
+ * binaries. Each is fetched once and reused from
+ * ~/.jfxpackager/cache/ on subsequent calls.
+ *
+ * @author Ayoub Elhatab
+ * LinkedIn: <a href="https://www.linkedin.com/in/ayoub-elhatab/">Ayoub Elhatab</a>
+ */
 public class DependencyManager {
 
     private static final Path CACHE_DIR = Paths.get(System.getProperty("user.home"), ".jfxpackager", "cache");

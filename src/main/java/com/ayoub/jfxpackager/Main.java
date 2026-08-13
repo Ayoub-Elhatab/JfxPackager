@@ -12,6 +12,16 @@ import java.util.Properties;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+/**
+ * CLI entry point for jfxpackager. Parses command-line flags (with
+ * defaults optionally loaded from a jfxpackager.properties file),
+ * auto-detects the jar and main class when not specified, builds a
+ * {@link PackagerConfig}, and runs {@link JfxPackager} to produce
+ * the final exe/msi/app-image.
+ *
+ * @author Ayoub Elhatab
+ * LinkedIn: <a href="https://www.linkedin.com/in/ayoub-elhatab/">Ayoub Elhatab</a>
+ */
 public class Main {
 
     /**

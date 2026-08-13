@@ -9,6 +9,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Builds a JavaFX app into a native Windows exe, msi, or app-image
+ * from a {@link PackagerConfig}. Wraps jlink (to build a minimal
+ * custom runtime) and jpackage (to bundle that runtime with the
+ * app's jar into the final output), auto-resolving javafx-jmods
+ * and WiX via {@link DependencyManager} when not explicitly set.
+ *
+ * @author Ayoub Elhatab
+ * LinkedIn: <a href="https://www.linkedin.com/in/ayoub-elhatab/">Ayoub Elhatab</a>
+ */
 @RequiredArgsConstructor
 public class JfxPackager {
 

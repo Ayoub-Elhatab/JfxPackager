@@ -15,6 +15,9 @@ import java.util.List;
  * JavaFX modules, output type, icon, shortcuts, dependency paths, etc).
  * Pure data + fluent setters — the actual jlink/jpackage work lives
  * in {@link JfxPackager}.
+ *
+ * @author Ayoub Elhatab
+ * LinkedIn: <a href="https://www.linkedin.com/in/ayoub-elhatab/">Ayoub Elhatab</a>
  */
 @Getter
 @Setter

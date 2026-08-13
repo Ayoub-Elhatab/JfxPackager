@@ -262,3 +262,7 @@ passed to `--icon` is relative to wherever you run the `mvn` command from
 ## Author
 
 Ayoub Elhatab — [LinkedIn](https://www.linkedin.com/in/ayoub-elhatab)
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

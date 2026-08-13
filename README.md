@@ -47,7 +47,8 @@ dependency in other projects.
 
 ### 1. Add the dependency
 
-In your JavaFX app's `pom.xml`:
+**Local (default)** — after running `mvn clean install` in this project,
+add the dependency in your JavaFX app's `pom.xml`:
 
 ```xml
 <dependency>
@@ -56,6 +57,34 @@ In your JavaFX app's `pom.xml`:
     <version>1.0</version>
 </dependency>
 ```
+
+This pulls the jar from your local `~/.m2` repo — works only on the
+machine where you ran `mvn install`.
+
+**Via JitPack (optional)** — this repo is pushed to GitHub and
+tagged (e.g. `v1.0.0`), any project can pull it directly from the tag
+instead of relying on a local build:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.github.Ayoub-Elhatab</groupId>
+        <artifactId>jfxpackager</artifactId>
+        <version>v1.0.0</version>
+    </dependency>
+</dependencies>
+```
+
+This is worth switching to once jfxpackager is used across more than one
+project or machine — no need to re-clone/rebuild from source each time,
+and it works the same way for anyone else with access to the repo.
 
 ### 2. Add the required plugins to your app's `pom.xml`
 

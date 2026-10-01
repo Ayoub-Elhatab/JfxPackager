@@ -6,7 +6,7 @@ runnable app folder (`app-image`) — without you having to manually download
 javafx-jmods, install WiX, or hand-type long `jlink`/`jpackage` commands
 every time.
 
-It wraps two steps:
+It wraps two steps :
 
 1. **`jlink`** — builds a minimal custom Java runtime containing only the
    modules your app needs (JavaFX + `java.base`).
